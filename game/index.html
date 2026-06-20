@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>深渊轮回直播间 - Abyss Reincarnation</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- 加载画面 -->
+<div id="loading-screen">
+  <div class="loading-content">
+    <div class="loading-spinner"></div>
+    <h2>深渊轮回直播间</h2>
+    <p id="loading-status">正在加载素材...</p>
+    <div class="loading-bar">
+      <div class="loading-fill" id="loading-fill"></div>
+    </div>
+    <span id="loading-percent">0%</span>
+  </div>
+</div>
+
+<canvas id="particle-canvas"></canvas>
+
+<div id="game-container">
+
+  <!-- ========== 开场画面 ========== -->
+  <div id="screen-intro" class="screen active">
+    <div class="intro-bg-full">
+      <img src="cover 游戏封面图.png" alt="" class="intro-bg-img">
+    </div>
+    <div class="intro-overlay"></div>
+    <div class="intro-fog"></div>
+    <div class="intro-content">
+      <h1 class="intro-title">深渊轮回直播间</h1>
+      <p class="intro-subtitle">ABYSS REINCARNATION</p>
+      <div class="intro-divider"></div>
+      <p class="intro-tagline">当现实与深渊的边界模糊，你能找到真相吗？</p>
+      <div class="intro-buttons">
+        <button class="btn-primary btn-lg intro-start" onclick="GameEngine.startNewGame()">
+          <span class="btn-text">⚡ 开 始 游 戏</span>
+        </button>
+        <button class="btn-secondary btn-lg intro-load" onclick="GameEngine.loadGame()">
+          <span>📂 读 取 存 档</span>
+        </button>
+      </div>
+      <div class="intro-version">v1.0 · 深渊轮回开发组</div>
+    </div>
+  </div>
+
+  <!-- ========== 序章剧情 ========== -->
+  <div id="screen-prologue" class="screen">
+    <div class="prologue-stage">
+      <div class="prologue-text" id="prologue-text"></div>
+    </div>
+    <button class="prologue-skip" onclick="GameEngine.skipPrologue()">跳过 ››</button>
+  </div>
+
+  <!-- ========== 主页大厅 ========== -->
+  <div id="screen-lobby" class="screen">
+    <div class="top-bar">
+      <div class="status-items">
+        <div class="status-item"><span class="status-icon">✨</span><span class="status-label">精神</span><span class="status-value" id="stat-spirit">100</span></div>
+        <div class="status-item"><span class="status-icon">❤️</span><span class="status-label">生命</span><span class="status-value" id="stat-hp">500</span></div>
+        <div class="status-item"><img src="金币.png" class="currency-icon" alt="金币"><span class="status-value" id="stat-gold">0</span></div>
+        <div class="status-item"><img src="钻石.png" class="currency-icon" alt="钻石"><span class="status-value" id="stat-diamond">0</span></div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="icon-btn" onclick="GameEngine.navigateTo('settings')" title="设置" aria-label="游戏设置"><img src="分辨率.png" alt="设置"></button>
+        <button class="icon-btn" onclick="GameEngine.toggleSound()" title="音效" aria-label="音效开关"><img src="音效开关.png" alt="音效"></button>
+      </div>
+    </div>
+
+    <div class="lobby-main">
+      <!-- 左侧：角色展示 — 放大立绘 -->
+      <div class="lobby-left">
+        <div class="lobby-character-frame">
+          <div class="lobby-character-display" id="lobby-character-display">
+            <img src="透明底基础人物立绘（全身  半身都能用，剧情核心素材）/莱伊全身.png" alt="当前角色" id="lobby-current-character">
+          </div>
+        </div>
+        <div class="lobby-character-info">
+          <div class="lobby-character-name" id="lobby-character-name">莱伊</div>
+          <div class="lobby-character-quote" id="lobby-character-quote">"...你终于来了。"</div>
+        </div>
+        <button class="btn-character-switch" onclick="GameEngine.cycleCharacter()">
+          <span>🔄 切换角色</span>
+        </button>
+      </div>
+
+      <!-- 右侧：功能面板 — 全新设计 -->
+      <div class="lobby-right">
+        <div class="function-grid">
+          <button class="func-card" onclick="GameEngine.navigateTo('dungeon')">
+            <div class="func-card-glow"></div>
+            <div class="func-card-icon"><img src="副本目录.png" alt="副本"></div>
+            <div class="func-card-info">
+              <span class="func-card-label">副本目录</span>
+              <span class="func-card-desc">探索深渊秘境</span>
+            </div>
+          </button>
+          <button class="func-card" onclick="GameEngine.navigateTo('archive')">
+            <div class="func-card-glow"></div>
+            <div class="func-card-icon"><img src="人物图鉴.png" alt="图鉴"></div>
+            <div class="func-card-info">
+              <span class="func-card-label">人物图鉴</span>
+              <span class="func-card-desc">角色资料与羁绊</span>
+            </div>
+          </button>
+          <button class="func-card" onclick="GameEngine.navigateTo('chat')">
+            <div class="func-card-glow"></div>
+            <div class="func-card-icon"><img src="聊天频道.png" alt="聊天"></div>
+            <div class="func-card-info">
+              <span class="func-card-label">聊天频道</span>
+              <span class="func-card-desc">与其他玩家交流</span>
+            </div>
+          </button>
+          <button class="func-card" onclick="GameEngine.navigateTo('clueboard')">
+            <div class="func-card-glow"></div>
+            <div class="func-card-icon"><img src="线索黑板.png" alt="线索"></div>
+            <div class="func-card-info">
+              <span class="func-card-label">线索黑板</span>
+              <span class="func-card-desc">关键线索记录</span>
+            </div>
+          </button>
+          <button class="func-card" onclick="GameEngine.navigateTo('gacha')">
+            <div class="func-card-glow"></div>
+            <div class="func-card-icon"><img src="抽卡.png" alt="抽卡"></div>
+            <div class="func-card-info">
+              <span class="func-card-label">深渊召唤</span>
+              <span class="func-card-desc">抽取稀有角色卡牌</span>
+            </div>
+          </button>
+          <button class="func-card" onclick="GameEngine.navigateTo('shop')">
+            <div class="func-card-glow"></div>
+            <div class="func-card-icon"><img src="商城.png" alt="商城"></div>
+            <div class="func-card-info">
+              <span class="func-card-label">深渊商店</span>
+              <span class="func-card-desc">道具与充值</span>
+            </div>
+          </button>
+          <button class="func-card" onclick="GameEngine.navigateTo('profile')">
+            <div class="func-card-glow"></div>
+            <div class="func-card-icon"><img src="个人主页.png" alt="主页"></div>
+            <div class="func-card-info">
+              <span class="func-card-label">个人主页</span>
+              <span class="func-card-desc">你的深渊档案</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-dialogue" id="lobby-dialogue">
+      <p class="dialogue-text" id="lobby-dialogue-text">欢迎回到深渊... 选择你的行动。</p>
+    </div>
+  </div>
+
+  <!-- ========== 副本目录 ========== -->
+  <div id="screen-dungeon" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>副本目录</h2>
+    </div>
+    <div class="sub-screen-body">
+      <div class="dungeon-list">
+        <div class="dungeon-card unlocked" onclick="GameEngine.startDungeon('fogschool')">
+          <div class="dungeon-card-thumb"><img src="雾锁校舍缩略图.png" alt="雾锁校舍"><div class="dungeon-difficulty"><img src="难度星级图标.png" alt="难度"><span>简单</span></div></div>
+          <div class="dungeon-card-info"><h3>第一章 · 雾锁校舍</h3><p>浓雾笼罩的废弃校舍，时间被恶意篡改...</p><div class="dungeon-rewards"><span>🎁 金币×500</span><span>💎 钻石×50</span><span>🃏 碎片×3</span></div><span class="dungeon-status">▶ 可挑战</span></div>
+        </div>
+        <div class="dungeon-card unlocked" onclick="GameEngine.startDungeon('library')">
+          <div class="dungeon-card-thumb"><img src="死寂图书馆缩略图.png" alt="死寂图书馆"><div class="dungeon-difficulty"><img src="难度星级图标.png" alt="难度"><span>普通</span></div></div>
+          <div class="dungeon-card-info"><h3>第二章 · 死寂图书馆</h3><p>亘古封闭的地下图书馆，暗夜中暗影游荡...</p><div class="dungeon-rewards"><span>🎁 金币×1000</span><span>💎 钻石×200</span><span>🃏 稀有碎片×2</span></div><span class="dungeon-status">▶ 可挑战</span></div>
+        </div>
+        <div class="dungeon-card locked"><div class="dungeon-card-thumb"><img src="未解锁副本占位图.png" alt="???"><div class="dungeon-lock-overlay"><img src="黑色纯人物剪影素材（无细节，仅遮挡未解锁内容）/人物剪影.png" alt="锁"><span>???</span></div></div><div class="dungeon-card-info"><h3>第三章 · ???</h3><p>通关前两章解锁...</p></div></div>
+        <div class="dungeon-card locked"><div class="dungeon-card-thumb"><img src="未解锁副本占位图.png" alt="???"><div class="dungeon-lock-overlay"><img src="黑色纯人物剪影素材（无细节，仅遮挡未解锁内容）/人物剪影1.png" alt="锁"><span>???</span></div></div><div class="dungeon-card-info"><h3>第四章 · ???</h3><p>达成真结局解锁...</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 副本剧情进行中 ========== -->
+  <div id="screen-dungeon-play" class="screen">
+    <div class="dungeon-play-bg" id="dungeon-play-bg"></div>
+    <div class="dungeon-play-overlay"></div>
+
+    <!-- 返回按钮 -->
+    <button class="dungeon-back-btn" onclick="GameEngine.returnToLobby()" title="返回大厅">
+      <img src="返回箭头.png" alt="返回"> 返回大厅
+    </button>
+
+    <!-- 状态条 -->
+    <div class="dungeon-play-status">
+      <span>✨ 精神值: <b id="dungeon-play-spirit">100</b></span>
+      <span>❤️ <b id="dungeon-play-hp">500</b></span>
+    </div>
+
+    <!-- 角色立绘 — 大幅放大 -->
+    <div class="dungeon-character-big" id="dungeon-dialogue-character"></div>
+
+    <!-- 底部对话区 -->
+    <div class="dungeon-dialogue-area">
+      <div class="dungeon-dialogue-box">
+        <p class="dungeon-dialogue-speaker" id="dungeon-dialogue-speaker"></p>
+        <p class="dungeon-dialogue-text" id="dungeon-dialogue-text"></p>
+        <span class="tts-indicator" id="tts-indicator" title="语音朗读中">🔊</span>
+        <button class="dungeon-dialogue-next" id="dungeon-dialogue-next-btn" onclick="GameEngine.advanceDialogue()">点击继续 ›</button>
+      </div>
+    </div>
+
+    <!-- 选择支 -->
+    <div class="dungeon-choices" id="dungeon-choices"></div>
+  </div>
+
+  <!-- ========== 副本结算 ========== -->
+  <div id="screen-dungeon-result" class="screen sub-screen">
+    <div class="result-content">
+      <h2 class="result-title" id="result-title">副本通关</h2>
+      <div class="result-rewards" id="result-rewards"></div>
+      <button class="btn-primary" onclick="GameEngine.returnToLobby()">返回深渊大厅</button>
+    </div>
+  </div>
+
+  <!-- ========== 人物图鉴 ========== -->
+  <div id="screen-archive" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>人物图鉴</h2>
+    </div>
+    <div class="sub-screen-body">
+      <div class="archive-grid" id="archive-grid"></div>
+      <div class="archive-detail" id="archive-detail" style="display:none;">
+        <div class="archive-detail-bg" onclick="document.getElementById('archive-detail').style.display='none'"></div>
+        <div class="archive-detail-content">
+          <button class="btn-close" onclick="document.getElementById('archive-detail').style.display='none'"><img src="关闭叉号.png" alt="关闭"></button>
+          <div class="archive-detail-illust" id="archive-detail-illust"></div>
+          <div class="archive-detail-info" id="archive-detail-info"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 聊天频道 ========== -->
+  <div id="screen-chat" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>聊天频道</h2>
+      <div class="chat-tabs">
+        <button class="chat-tab active" onclick="GameEngine.switchChatTab('world', this)">世界</button>
+        <button class="chat-tab" onclick="GameEngine.switchChatTab('friends', this)">好友</button>
+        <button class="chat-tab" onclick="GameEngine.switchChatTab('system', this)">系统</button>
+      </div>
+    </div>
+    <div class="sub-screen-body chat-body">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chat-input" placeholder="发送消息...">
+        <button class="btn-send" onclick="GameEngine.sendChat()">发送</button>
+      </div>
+      <div class="friends-list" id="friends-list"></div>
+    </div>
+  </div>
+
+  <!-- ========== 线索黑板 ========== -->
+  <div id="screen-clueboard" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>线索黑板</h2>
+    </div>
+    <div class="sub-screen-body">
+      <div class="clue-list" id="clue-list"></div>
+    </div>
+  </div>
+
+  <!-- ========== 深渊召唤（抽卡） ========== -->
+  <div id="screen-gacha" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>深渊召唤</h2>
+      <div class="gacha-currency">
+        <span>💎 <b id="gacha-diamond">0</b></span>
+        <span>🃏 抽卡券: <b id="gacha-tickets">3</b></span>
+      </div>
+    </div>
+    <div class="sub-screen-body gacha-body">
+      <div class="gacha-banner">
+        <h3>限定召唤 · 深渊回声</h3>
+        <p>SSR角色出现率UP！极品/限定卡概率提升</p>
+        <div class="gacha-rates">
+          <span class="rate-limited">限定 0.6%</span><span class="rate-legendary">极品 2.4%</span><span class="rate-rare">稀有 12%</span><span class="rate-normal">普通 85%</span>
+        </div>
+      </div>
+      <div class="gacha-actions">
+        <button class="btn-gacha btn-gacha-single" onclick="GameEngine.gachaDraw(1)">单次召唤<br><small>💎300钻石</small></button>
+        <button class="btn-gacha btn-gacha-ten" onclick="GameEngine.gachaDraw(10)">十连召唤<br><small>💎2700钻石</small></button>
+      </div>
+      <div class="gacha-result" id="gacha-result" style="display:none;">
+        <div class="gacha-result-cards" id="gacha-result-cards"></div>
+        <button class="btn-primary" onclick="GameEngine.closeGachaResult()">确认</button>
+      </div>
+      <div class="gacha-collection">
+        <h4>📚 集卡</h4>
+        <div class="gacha-collection-grid" id="gacha-collection-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 卡牌放大查看弹窗 -->
+  <div class="card-zoom-modal" id="card-zoom-modal" style="display:none;" onclick="this.style.display='none'">
+    <img id="card-zoom-img" src="" alt="卡牌大图">
+  </div>
+
+  <!-- ========== 深渊商店 ========== -->
+  <div id="screen-shop" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>深渊商店</h2>
+      <div class="shop-tabs">
+        <button class="shop-tab active" onclick="GameEngine.switchShopTab('items', this)">道具</button>
+        <button class="shop-tab" onclick="GameEngine.switchShopTab('recharge', this)">充值</button>
+        <button class="shop-tab" onclick="GameEngine.switchShopTab('skins', this)">皮肤</button>
+      </div>
+    </div>
+    <div class="sub-screen-body shop-body">
+      <div class="shop-items" id="shop-items"></div>
+      <div class="shop-recharge" id="shop-recharge" style="display:none;">
+        <div class="recharge-grid">
+          <button class="recharge-card" onclick="GameEngine.recharge(6)"><span class="rc-amount">6</span><span>元</span><small>60钻石</small></button>
+          <button class="recharge-card" onclick="GameEngine.recharge(30)"><span class="rc-amount">30</span><span>元</span><small>300钻石</small></button>
+          <button class="recharge-card" onclick="GameEngine.recharge(290)"><span class="rc-amount">290</span><span>元</span><small>2900钻石</small></button>
+          <button class="recharge-card" onclick="GameEngine.recharge(368)"><span class="rc-amount">368</span><span>元</span><small>3680钻石</small></button>
+          <button class="recharge-card highlight" onclick="GameEngine.recharge(648)"><span class="rc-amount">648</span><span>元</span><small>6480钻石</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 个人主页 ========== -->
+  <div id="screen-profile" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>个人主页</h2>
+      <button class="btn-secondary btn-sm" onclick="GameEngine.toggleProfilePrivacy()"><span id="privacy-label">公开</span></button>
+    </div>
+    <div class="sub-screen-body profile-body">
+      <div class="profile-header">
+        <div class="profile-showcase" id="profile-showcase"></div>
+        <div class="profile-info">
+          <h3 id="profile-name">玩家ID: 深渊行者</h3>
+          <p>ID修改次数剩余: <span id="profile-id-changes">1</span></p>
+          <button class="btn-secondary btn-sm" onclick="GameEngine.changePlayerID()">修改ID</button>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat"><span>副本通关</span><b id="profile-dungeons-cleared">0</b></div>
+        <div class="profile-stat"><span>角色收集</span><b id="profile-characters-owned">1</b></div>
+        <div class="profile-stat"><span>全成就</span><b id="profile-achievements">0</b></div>
+        <div class="profile-stat"><span>历史通关</span><b id="profile-total-clears">0</b></div>
+      </div>
+      <div class="profile-decoration">
+        <h4>主页装饰</h4>
+        <div class="decoration-options" id="decoration-options"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 设置 ========== -->
+  <div id="screen-settings" class="screen sub-screen">
+    <div class="sub-screen-header">
+      <button class="btn-back" onclick="GameEngine.navigateTo('lobby')"><img src="返回箭头.png" alt="返回"></button>
+      <h2>设置</h2>
+    </div>
+    <div class="sub-screen-body settings-body">
+      <div class="setting-item"><span>背景音乐</span><input type="range" min="0" max="100" value="80" onchange="GameEngine.setVolume('bgm', this.value)"></div>
+      <div class="setting-item"><span>音效</span><input type="range" min="0" max="100" value="100" onchange="GameEngine.setVolume('sfx', this.value)"></div>
+      <div class="setting-item"><span>语音朗读</span><input type="range" min="0" max="100" value="100" onchange="GameEngine.setVolume('voice', this.value)"></div>
+      <button class="btn-secondary" onclick="GameEngine.toggleTTS()" id="tts-toggle-btn">🗣️ 语音朗读: 开</button>
+      <button class="btn-secondary" onclick="GameEngine.navigateTo('lobby')">返回游戏</button>
+      <button class="btn-danger" onclick="GameEngine.resetGame()">重置游戏数据</button>
+      <div class="settings-version">深渊轮回直播间 v1.0</div>
+    </div>
+  </div>
+
+  <!-- ========== 弹窗：游戏结束 ========== -->
+  <div id="modal-gameover" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content gameover-modal">
+      <h2>深渊吞噬了你...</h2>
+      <p id="gameover-reason"></p>
+      <div class="gameover-choices">
+        <button class="btn-primary" onclick="GameEngine.restartFromCheckpoint()">从记录点重来</button>
+        <button class="btn-secondary" onclick="GameEngine.returnToLobby()">返回大厅</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 弹窗：确认 ========== -->
+  <div id="modal-confirm" class="modal" style="display:none;">
+    <div class="modal-overlay" onclick="GameEngine.closeConfirm()"></div>
+    <div class="modal-content confirm-modal">
+      <p id="confirm-message"></p>
+      <div class="confirm-buttons">
+        <button class="btn-primary" onclick="GameEngine.confirmAction()">确认</button>
+        <button class="btn-secondary" onclick="GameEngine.closeConfirm()">取消</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/game-data.js"></script>
+<script src="js/audio-system.js"></script>
+<script src="js/tts-system.js"></script>
+<script src="js/game-engine.js"></script>
+<script src="js/animations.js"></script>
+<script src="js/ui-components.js"></script>
+<script src="js/dungeon-system.js"></script>
+<script src="js/gacha-system.js"></script>
+<script src="js/social-system.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
